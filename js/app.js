@@ -3,6 +3,7 @@
  application script for the JavaScript and Forms Demo
  */
 
+//switches the java interpreter to avoid common mistakes in our code. use strict helps us find mispellings and stuff
 "use strict";
 
 /* onReady()
@@ -13,12 +14,37 @@
  * */
 function onReady() {
     //get a reference to the form
+    var ageForm = document.getElementById('age-form');
 
     //add an event listener for the 'submit' event passing onSubmit as the event handler function
-
+    ageForm.addEventListener('submit', onSubmit);
+    if (window.localStorage) {
+        ageForm.elements['name'].value = window.localStorage.getItem('defaultName');
+    }
     //add an event listener for the 'click' event on the exit button
     //for this one we will use an inline anonymous function so that you can get used to those
+    //get reference to object by using getElementById
+    var exitButton = document.getElementById('exit-button');
+    exitButton.addEventListener('click',function() {
+       //if else statement that either stays or leaves page
+        if (window.confirm('Are you really sure you want to leave? I worked really hard on this!')) {
+           window.location = 'http://www.google.com';
+       }
 
+    });
+
+    var resetButton = document.getElementById('reset-button');
+    resetButton.addEventListener('click', function() {
+        document.getElementById('age-message').style.display = 'none';
+    });
+
+    var nameInput = ageForm.elements['name'];
+    nameInput.addEventListener('change', function() {
+        if (window.localStorage) {
+            window.localStorage.setItem('defaultName', this.value);
+
+        }
+    });
 } //onReady()
 
 //call onReady() when the DOMContentLoaded event is raised
@@ -39,7 +65,23 @@ function onSubmit(eventObject) {
 
     //get the name and the date-of-birth value
 
-    //calculate the age
+    //refers to element that raised the event and retrieves actual text (value) of user
+    var name = this.elements['name'].value;
+    var dob = this.elements['dob'].value;
+
+    console.log(dob);
+
+    try {
+        //calculate the age
+        var age = calculateAge(dob);
+
+        //display the name and age
+        displayAge(name, age);
+    }
+    //no type for your exception
+    catch(exception) {
+        displayError(exception);
+    }
 
     //display the name and age
 
@@ -69,8 +111,27 @@ function onSubmit(eventObject) {
  *   age in years [number]
  */
 function calculateAge(dob) {
+    if (!dob) {
+        throw new Error('Please tell me when you were born!');
+    }
     //calculate the person's age based on the date-of-birth
+    /*
+    var today = new Date();
+    //converts string into a date object, and resets the parameter to correct date
+    dob = new Date(dob);
 
+    //javascript data in relation to times universal
+    //when you ask for string back do .getUTCDate();
+    var yearsDiff = today.getFullYear() - dob.getUTCFullYear();
+    var monthsDiff = today.getMonth() - dob.getUTCMonth();
+    var daysDiff = today.getDate() - dob.getUTCDate();
+
+    if (monthsDiff <= 0 || (0 === monthsDiff && daysDiff < 0)) {
+        yearsDiff--;
+    }
+    return yearsDiff;
+    */
+    return moment().diff(dob, 'years');
 } //calculateAge()
 
 /* displayAge()
@@ -81,8 +142,13 @@ function calculateAge(dob) {
  *   age - [number or string] age of person
  * */
 function displayAge(name, age) {
+    var nameRegEx = new RegExp('^\\D+$');
+    if (!nameRegEx.test(name)) {
+        throw new Error('Your name cannot contain numbers!');
+    }
     //use displayMessage() to display the name and age
-
+    //age will be numeric but javascript will convert it into a string
+    displayMessage(name + ', you are ' + age + ' years old!');
 } //displayAge()
 
 /* displayAge()
@@ -93,7 +159,7 @@ function displayAge(name, age) {
  * */
 function displayError(error) {
     //use displayMessage to display the error
-
+    displayMessage(error, true);
 } //displayError()
 
 /* displayMessage()
@@ -104,5 +170,13 @@ function displayError(error) {
  *   isError - [boolean, default=false] set to true if this is an error message
  * */
 function displayMessage(message, isError) {
+    var msgElem = documentgetElementById('age-message');
+    //?????
+    msgElem.innerHTML = message;
 
+    //question mark separates the condition - this is an if-else statement
+    msgElem.className = isError ? 'alert alert-danger' : 'alert alert-success';
+
+    //sets none back to block so the user is reminded to put in a freaking age
+    msgElem.style.display = 'block';
 } //displayMessage()
